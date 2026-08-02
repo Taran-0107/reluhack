@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Menu, History, Clock, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Menu, History, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "../lib/utils";
 import { fetchHistory } from "../services/api";
 

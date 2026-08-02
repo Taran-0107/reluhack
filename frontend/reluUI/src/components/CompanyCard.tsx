@@ -120,14 +120,14 @@ export function CompanyCard({ data }: CompanyCardProps) {
         {/* Pain Points */}
         {data.pain_points && data.pain_points.value.length > 0 && (
           <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">AI-Generated Pain Points</h3>
-              {data.pain_points.source && (
-                <span className="text-[10px] text-slate-500 border border-slate-700 px-1.5 py-0.5 rounded">
-                  {data.pain_points.source} (Conf: {(data.pain_points.confidence * 100).toFixed(0)}%)
-                </span>
-              )}
-            </div>
+              <div className="flex items-center gap-2 mb-4">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">AI-Generated Pain Points</h3>
+                {data.pain_points.source && (
+                  <span className="text-[10px] text-slate-500 border border-slate-700 px-1.5 py-0.5 rounded">
+                    {data.pain_points.source} (Conf: {((data.pain_points.confidence || 0) * 100).toFixed(0)}%)
+                  </span>
+                )}
+              </div>
             <ul className="space-y-3">
               {data.pain_points.value.map((point, i) => (
                 <li key={i} className="flex gap-3 text-slate-300 text-sm leading-relaxed">
