@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Company Research</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --surface: #1e293b;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5);
+            border: 1px solid var(--border);
+        }
+
+        h1 {
+            text-align: center;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-color);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        button {
+            width: 100%;
+            padding: 0.875rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+        }
+        
+        button:active {
+            transform: scale(0.98);
+        }
+        
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 1rem 0;
+            color: var(--primary);
+        }
+        
+        .spinner {
+            border: 3px solid rgba(59, 130, 246, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid var(--primary);
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            display: none;
+            padding: 1rem;
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--error);
+            border-radius: 4px;
+            margin: 1rem 0;
+            color: #fca5a5;
+        }
+
+        .result-card {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-color);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .result-card h2 {
+            margin-top: 0;
+            color: #e2e8f0;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+        
+        .section-title {
+            color: #cbd5e1;
+            font-size: 1.1rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .meta-data {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .meta-item {
+            background: var(--surface);
+            padding: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+        
+        .meta-item span {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        ul {
+            padding-left: 1.2rem;
+            margin: 0;
+            color: #94a3b8;
+        }
+        
+        li {
+            margin-bottom: 0.25rem;
+        }
+        
+        .competitor-card {
+            background: var(--surface);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            border: 1px solid var(--border);
+        }
+        
+        .competitor-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: #60a5fa;
+        }
+        
+        .competitor-card p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>AI Company Research</h1>
+        
+        <div class="form-group">
+            <label for="companyName">Company Name</label>
+            <input type="text" id="companyName" placeholder="e.g. OpenAI, Stripe, Vercel" />
+        </div>
+        
+        <div class="form-group" style="text-align: center; color: var(--text-muted); margin: -0.5rem 0 1rem 0;">
+            <small>OR</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="websiteUrl">Website URL</label>
+            <input type="url" id="websiteUrl" placeholder="https://example.com" />
+        </div>
+
+        <button id="searchBtn" onclick="runResearch()">Generate Research Report</button>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <span>Crawling web & generating insights... (This can take 30-60s)</span>
+        </div>
+
+        <div id="error" class="error"></div>
+
+        <div id="result" class="result-card">
+            <h2 id="resName">Company Name</h2>
+            <p id="resSummary" style="color: #94a3b8; line-height: 1.5;"></p>
+            
+            <div class="meta-data">
+                <div class="meta-item">
+                    <span>Website</span>
+                    <a id="resWebsite" href="#" target="_blank" style="color: #60a5fa; text-decoration: none;">-</a>
+                </div>
+                <div class="meta-item">
+                    <span>Phone</span>
+                    <div id="resPhone">-</div>
+                </div>
+                <div class="meta-item">
+                    <span>Address</span>
+                    <div id="resAddress">-</div>
+                </div>
+            </div>
+
+            <div class="section-title">Products & Services</div>
+            <ul id="resProducts"></ul>
+
+            <div class="section-title">AI-Identified Pain Points</div>
+            <ul id="resPainPoints"></ul>
+
+            <div class="section-title">Top Competitors</div>
+            <div id="resCompetitors"></div>
+
+            <div class="action-buttons">
+                <button id="downloadPdfBtn" class="btn-secondary">Download PDF Report</button>
+                <button id="testDiscordBtn" class="btn-secondary" style="border-color: #8b5cf6; color: #8b5cf6;" onclick="testDiscord()">Test Discord Webhook</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let currentCompanyName = '';
+
+        async function runResearch() {
+            const companyName = document.getElementById('companyName').value.trim();
+            const websiteUrl = document.getElementById('websiteUrl').value.trim();
+            
+            const btn = document.getElementById('searchBtn');
+            const loading = document.getElementById('loading');
+            const errorDiv = document.getElementById('error');
+            const resultDiv = document.getElementById('result');
+
+            if (!companyName && !websiteUrl) {
+                errorDiv.textContent = "Please enter either a Company Name or a Website URL.";
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            errorDiv.style.display = 'none';
+            resultDiv.style.display = 'none';
+            loading.style.display = 'block';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/research/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        company_name: companyName || null,
+                        website_url: websiteUrl || null
+                    })
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || "Failed to generate research");
+                }
+
+                const data = await response.json();
+                displayResults(data);
+                
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+                btn.disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            currentCompanyName = data.company_name;
+            document.getElementById('result').style.display = 'block';
+            
+            document.getElementById('resName').textContent = data.company_name;
+            document.getElementById('resSummary').textContent = data.summary;
+            
+            const webLink = document.getElementById('resWebsite');
+            webLink.textContent = data.website || "N/A";
+            webLink.href = data.website || "#";
+            
+            document.getElementById('resPhone').textContent = data.phone_number || "N/A";
+            document.getElementById('resAddress').textContent = data.address || "N/A";
+            
+            const prodList = document.getElementById('resProducts');
+            prodList.innerHTML = '';
+            data.products_services.forEach(p => {
+                const li = document.createElement('li');
+                li.textContent = p;
+                prodList.appendChild(li);
+            });
+            
+            const ppList = document.getElementById('resPainPoints');
+            ppList.innerHTML = '';
+            data.pain_points.forEach(p => {
+                const li = document.createElement('li');
+                li.textContent = p;
+                ppList.appendChild(li);
+            });
+            
+            const compDiv = document.getElementById('resCompetitors');
+            compDiv.innerHTML = '';
+            if (data.competitors && data.competitors.length > 0) {
+                data.competitors.forEach(c => {
+                    const card = document.createElement('div');
+                    card.className = 'competitor-card';
+                    card.innerHTML = `
+                        <h4>${c.name} ${c.website ? `<a href="${c.website}" target="_blank" style="font-size:0.75rem; color:#94a3b8; text-decoration:none;">🔗</a>` : ''}</h4>
+                        <p>${c.description || 'No description available.'}</p>
+                    `;
+                    compDiv.appendChild(card);
+                });
+            } else {
+                compDiv.innerHTML = '<p style="color:#94a3b8; margin:0;">No direct competitors found.</p>';
+            }
+
+            document.getElementById('downloadPdfBtn').onclick = () => {
+                window.open(`${API_BASE}/pdf/${encodeURIComponent(currentCompanyName)}`, '_blank');
+            };
+        }
+
+        async function testDiscord() {
+            try {
+                const response = await fetch(`${API_BASE}/discord/test-webhook`, {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    alert("Test Discord webhook triggered successfully!");
+                } else {
+                    alert("Failed to trigger Discord webhook.");
+                }
+            } catch (e) {
+                alert("Error connecting to server.");
+            }
+        }
+    </script>
+</body>
+</html>
