@@ -25,6 +25,11 @@ export const fetchResearch = async (companyName: string): Promise<ResearchResult
   return response.data;
 };
 
+export const fetchLogs = async (): Promise<{logs: string[]}> => {
+  const response = await apiClient.get("/research/logs");
+  return response.data;
+};
+
 export const sendToDiscord = async (companyName: string, config: any) => {
   const response = await apiClient.post(`/discord/send/${encodeURIComponent(companyName)}`, config);
   return response.data;

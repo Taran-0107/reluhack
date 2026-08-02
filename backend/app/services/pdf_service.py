@@ -18,36 +18,36 @@ class PDFService:
         story = []
         
         # Title
-        story.append(Paragraph(f"Research Report: {data.company_name}", title_style))
+        story.append(Paragraph(f"Research Report: {data.company_name.value}", title_style))
         story.append(Spacer(1, 12))
         
         # Company Info
         story.append(Paragraph("Company Information", heading_style))
-        story.append(Paragraph(f"<b>Website:</b> {data.website or 'N/A'}", normal_style))
-        story.append(Paragraph(f"<b>Phone:</b> {data.phone_number or 'N/A'}", normal_style))
-        story.append(Paragraph(f"<b>Address:</b> {data.address or 'N/A'}", normal_style))
+        story.append(Paragraph(f"<b>Website:</b> {data.website.value or 'N/A'}", normal_style))
+        story.append(Paragraph(f"<b>Phone:</b> {data.phone_number.value or 'N/A'}", normal_style))
+        story.append(Paragraph(f"<b>Address:</b> {data.address.value or 'N/A'}", normal_style))
         story.append(Spacer(1, 12))
         
         # Summary
         story.append(Paragraph("Summary", heading_style))
-        story.append(Paragraph(data.summary, normal_style))
+        story.append(Paragraph(data.summary.value, normal_style))
         story.append(Spacer(1, 12))
         
         # Products / Services
         story.append(Paragraph("Products / Services", heading_style))
-        for item in data.products_services:
+        for item in data.products_services.value:
             story.append(Paragraph(f"• {item}", normal_style))
         story.append(Spacer(1, 12))
         
         # Pain Points
         story.append(Paragraph("Pain Points Solved", heading_style))
-        for item in data.pain_points:
+        for item in data.pain_points.value:
             story.append(Paragraph(f"• {item}", normal_style))
         story.append(Spacer(1, 12))
         
         # Competitors
         story.append(Paragraph("Competitors", heading_style))
-        for comp in data.competitors:
+        for comp in data.competitors.value:
             comp_text = f"<b>{comp.name}</b>"
             if comp.website:
                 comp_text += f" ({comp.website})"

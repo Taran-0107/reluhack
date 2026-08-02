@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Menu, History, Clock } from "lucide-react";
+import { Plus, Menu, History, Clock, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "../lib/utils";
 import { fetchHistory } from "../services/api";
 
@@ -17,6 +17,7 @@ export function Sidebar({ onNewResearch, onSelectHistory }: SidebarProps) {
   const [applicantName, setApplicantName] = useState(() => localStorage.getItem("applicantName") || "");
   const [applicantEmail, setApplicantEmail] = useState(() => localStorage.getItem("applicantEmail") || "");
   const [saved, setSaved] = useState(false);
+  const [showDiscord, setShowDiscord] = useState(false);
 
   useEffect(() => {
     fetchHistory().then(setHistory).catch(console.error);
@@ -97,69 +98,80 @@ export function Sidebar({ onNewResearch, onSelectHistory }: SidebarProps) {
               </div>
             </div>
 
-            <div>
-              <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Discord Bot Integration</h2>
-              <div className="p-4 bg-indigo-950/30 border border-indigo-900/50 rounded-lg space-y-4">
-                <p className="text-[11px] text-indigo-200/70">
-                  Configure your bot credentials here. You can manually send any report to Discord using the button on the company card.
-                </p>
-                
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">Bot Token</label>
-                    <input
-                      type="password"
-                      value={botToken}
-                      onChange={(e) => setBotToken(e.target.value)}
-                      placeholder="Bot token..."
-                      className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">Channel ID</label>
-                    <input
-                      type="text"
-                      value={channelId}
-                      onChange={(e) => setChannelId(e.target.value)}
-                      placeholder="000000000000000000"
-                      className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
+            <div className="mt-8 space-y-4">
+              <button 
+                onClick={() => setShowDiscord(!showDiscord)}
+                className="w-full flex items-center justify-between text-xs font-semibold text-slate-500 hover:text-slate-300 uppercase tracking-wider mb-1 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <MessageSquare size={14} /> Discord Bot
                 </div>
-
-                <div className="pt-2 border-t border-indigo-900/30">
-                  <h3 className="text-[10px] font-semibold text-indigo-300 uppercase tracking-wider mb-3">Applicant Details</h3>
+                {showDiscord ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+              
+              {showDiscord && (
+                <div className="p-4 bg-indigo-950/30 border border-indigo-900/50 rounded-lg space-y-4 animate-in slide-in-from-top-2 fade-in duration-200">
+                  <p className="text-[11px] text-indigo-200/70">
+                    Configure your bot credentials here. You can manually send any report to Discord using the button on the company card.
+                  </p>
+                  
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-[10px] font-medium text-slate-400 mb-1">Full Name</label>
+                      <label className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">Bot Token</label>
                       <input
-                        type="text"
-                        value={applicantName}
-                        onChange={(e) => setApplicantName(e.target.value)}
-                        placeholder="Your full name"
+                        type="password"
+                        value={botToken}
+                        onChange={(e) => setBotToken(e.target.value)}
+                        placeholder="Bot token..."
                         className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-medium text-slate-400 mb-1">Email Address</label>
+                      <label className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">Channel ID</label>
                       <input
-                        type="email"
-                        value={applicantEmail}
-                        onChange={(e) => setApplicantEmail(e.target.value)}
-                        placeholder="email@example.com"
+                        type="text"
+                        value={channelId}
+                        onChange={(e) => setChannelId(e.target.value)}
+                        placeholder="000000000000000000"
                         className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
                       />
                     </div>
                   </div>
-                </div>
 
-                <button 
-                  onClick={handleSaveConfig}
-                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium py-2.5 rounded transition-colors"
-                >
-                  {saved ? "Saved ✓" : "Save Discord Config"}
-                </button>
-              </div>
+                  <div className="pt-2 border-t border-indigo-900/30">
+                    <h3 className="text-[10px] font-semibold text-indigo-300 uppercase tracking-wider mb-3">Applicant Details</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-[10px] font-medium text-slate-400 mb-1">Full Name</label>
+                        <input
+                          type="text"
+                          value={applicantName}
+                          onChange={(e) => setApplicantName(e.target.value)}
+                          placeholder="Your full name"
+                          className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-medium text-slate-400 mb-1">Email Address</label>
+                        <input
+                          type="email"
+                          value={applicantEmail}
+                          onChange={(e) => setApplicantEmail(e.target.value)}
+                          placeholder="email@example.com"
+                          className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={handleSaveConfig}
+                    className="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium py-2.5 rounded transition-colors"
+                  >
+                    {saved ? "Saved ✓" : "Save Discord Config"}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

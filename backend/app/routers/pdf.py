@@ -17,7 +17,7 @@ async def download_pdf(company_name: str):
     pdf_buffer = pdf_service.generate_report(result)
     
     headers = {
-        'Content-Disposition': f'attachment; filename="{result.company_name.replace(" ", "_")}_report.pdf"'
+        'Content-Disposition': f'attachment; filename="{result.company_name.value.replace(" ", "_")}_report.pdf"'
     }
     
     return StreamingResponse(pdf_buffer, media_type="application/pdf", headers=headers)

@@ -1,0 +1,82 @@
+{
+    "company_name": {
+        "value": "Zomato",
+        "source": "Search Snippets",
+        "confidence": 1.0
+    },
+    "website": {
+        "value": "www.zomato.com",
+        "source": "Search Snippets",
+        "confidence": 1.0
+    },
+    "phone_number": {
+        "value": null,
+        "source": null,
+        "confidence": 1.0
+    },
+    "address": {
+        "value": null,
+        "source": null,
+        "confidence": 1.0
+    },
+    "products_services": {
+        "value": [
+            "Food delivery platform",
+            "Online food ordering",
+            "Restaurant management"
+        ],
+        "source": "External Sources",
+        "confidence": 1.0
+    },
+    "pain_points": {
+        "value": [
+            "Negative customer experiences with order processing",
+            "Poor customer support and communication",
+            "High commission and advertising fees for restaurants",
+            "Lack of advanced features for restaurant management",
+            "Inconsistent quality of food and delivery",
+            "Difficulty in tracking and managing inventory",
+            "Inadequate training for delivery personnel",
+            "Inaccurate or misleading reviews"
+        ],
+        "source": "Inferred Insights",
+        "confidence": 0.8
+    },
+    "competitors": {
+        "value": [
+            {
+                "name": "DoorDash for Merchants",
+                "website": null,
+                "description": "Alternative food delivery software with similar features"
+            },
+            {
+                "name": "Restroworks Cloud Kitchen Management Software",
+                "website": null,
+                "description": "Cloud kitchen management software with high ratings for ease of use and value for money"
+            },
+            {
+                "name": "GrubHub",
+                "website": null,
+                "description": "Food delivery platform with a focus on ease of use and functionality"
+            },
+            {
+                "name": "Owner.com",
+                "website": null,
+                "description": "Software for managing food orders with a monthly pricing plan"
+            },
+            {
+                "name": "Instacart",
+                "website": null,
+                "description": "Food delivery software with a focus on ease of use and value for money"
+            }
+        ],
+        "source": "External Sources",
+        "confidence": 0.9
+    },
+    "summary": {
+        "value": "Zomato is a food delivery platform that connects customers with restaurants, allowing users to order food online and track deliveries. It also provides restaurant management tools for businesses, including advertisement handling, menu listings, customer feedback management, and revenue tracking.",
+        "source": "External Sources",
+        "confidence": 1.0
+    },
+    "_created_at": "2026-08-02T17:40:59.262102"
+}

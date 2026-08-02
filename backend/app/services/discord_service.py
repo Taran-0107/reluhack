@@ -29,18 +29,18 @@ class DiscordService:
         }
 
         embed = {
-            "title": f"Research Completed: {data.company_name}",
-            "url": data.website if data.website.startswith("http") else f"https://{data.website}",
+            "title": f"Research Completed: {data.company_name.value}",
+            "url": data.website.value if data.website.value.startswith("http") else f"https://{data.website.value}",
             "color": 16766720, # Amber-400
             "fields": [
                 {
                     "name": "Company Name",
-                    "value": data.company_name,
+                    "value": data.company_name.value,
                     "inline": True
                 },
                 {
                     "name": "Company Website",
-                    "value": data.website,
+                    "value": data.website.value,
                     "inline": True
                 }
             ]
@@ -63,7 +63,7 @@ class DiscordService:
         }
 
         files = {
-            "files[0]": (f"{data.company_name}_Research_Report.pdf", pdf_bytes, "application/pdf")
+            "files[0]": (f"{data.company_name.value}_Research_Report.pdf", pdf_bytes, "application/pdf")
         }
 
         async with httpx.AsyncClient() as client:

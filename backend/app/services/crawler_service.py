@@ -87,57 +87,68 @@ class CrawlerService:
             logger.error(f"Selenium failed for {url}: {e}")
             return ""
 
-    async def crawl_website(self, base_url: str) -> str:
-        visited: Set[str] = set()
-        to_visit: List[str] = [base_url]
+    async def crawl_website(self, base_url: str) -> dict:
+        visited: Set[str] = set([base_url])
         consolidated_text = ""
+        structured_data = {"json_ld": [], "metadata": {}}
         
-        while to_visit and len(visited) < self.max_pages:
-            url = to_visit.pop(0)
-            if url in visited:
-                continue
-                
-            visited.add(url)
-            logger.info(f"Crawling {url}")
+        logger.info(f"Crawling homepage {base_url}")
+        
+        # Crawl homepage first
+        text, html = await self._fetch_and_clean(base_url)
+        if html:
+            sd = extractor_service.extract_structured_data(html)
+            structured_data["json_ld"].extend(sd["json_ld"])
+            structured_data["metadata"].update(sd["metadata"])
             
-            try:
-                text = ""
-                html = ""
-                try:
-                    html = await self._fetch_with_httpx(url)
-                    text = extractor_service.clean_html(html)
-                except Exception as e:
-                    logger.warning(f"HTTPX failed for {url} ({e}). Falling back to Selenium...")
+        consolidated_text += f"\n--- Content from {base_url} ---\n{text}\n"
+        
+        # Discover and score links
+        scored_links = []
+        if html:
+            soup = BeautifulSoup(html, "html.parser")
+            positive_keywords = ["about", "company", "product", "service", "solution", "platform", "technology", "contact", "pricing"]
+            negative_keywords = ["login", "privacy", "terms", "careers", "jobs", "blog", "events", "press", "legal"]
+            
+            for a_tag in soup.find_all("a", href=True):
+                link = a_tag["href"]
+                full_url = urljoin(base_url, link)
                 
-                if len(text) < 500 and SELENIUM_AVAILABLE:
-                    # Fallback
-                    loop = asyncio.get_running_loop()
-                    html = await loop.run_in_executor(None, self._fetch_with_selenium, url)
-                    text = extractor_service.clean_html(html)
-                
-                consolidated_text += f"\n--- Content from {url} ---\n{text}\n"
-                
-                # Extract links if we need more pages
-                if len(visited) < self.max_pages and html:
-                    soup = BeautifulSoup(html, "html.parser")
-                    for a_tag in soup.find_all("a", href=True):
-                        link = a_tag["href"]
-                        full_url = urljoin(base_url, link)
+                if self._is_valid_url(base_url, full_url) and full_url not in visited:
+                    lower_url = full_url.lower()
+                    score = 0
+                    if any(k in lower_url for k in positive_keywords):
+                        score += 1
+                    if any(k in lower_url for k in negative_keywords):
+                        score -= 1
                         
-                        # Prioritize target keywords
-                        if self._is_valid_url(base_url, full_url) and full_url not in visited:
-                            lower_url = full_url.lower()
-                            if any(k in lower_url for k in self.target_keywords):
-                                if full_url not in to_visit:
-                                    to_visit.insert(0, full_url) # Priority queue
-                            else:
-                                if full_url not in to_visit:
-                                    to_visit.append(full_url)
-                                    
-            except Exception as e:
-                logger.error(f"Failed to crawl {url}: {e}")
+                    if score >= 0:
+                        scored_links.append((score, full_url))
+                        visited.add(full_url)
+                        
+            # Sort by score descending, then take top N
+            scored_links.sort(key=lambda x: x[0], reverse=True)
+            top_links = [url for score, url in scored_links[:self.max_pages - 1]]
+            
+            if top_links:
+                logger.info(f"Concurrently crawling {len(top_links)} discovered internal pages.")
+                tasks = [self._fetch_and_clean(url) for url in top_links]
+                results = await asyncio.gather(*tasks, return_exceptions=True)
                 
-        return consolidated_text
+                for url, result in zip(top_links, results):
+                    if isinstance(result, Exception):
+                        logger.error(f"Failed to crawl {url}: {result}")
+                    else:
+                        page_text, page_html = result
+                        consolidated_text += f"\n--- Content from {url} ---\n{page_text}\n"
+                        if page_html:
+                            sd = extractor_service.extract_structured_data(page_html)
+                            structured_data["json_ld"].extend(sd["json_ld"])
+                
+        return {
+            "text": consolidated_text,
+            "structured_data": structured_data
+        }
 
     async def crawl_urls_concurrently(self, urls: List[str]) -> str:
         consolidated_text = ""
@@ -155,9 +166,9 @@ class CrawlerService:
         
         return consolidated_text
 
-    async def _crawl_single_url(self, url: str) -> str:
+    async def _fetch_and_clean(self, url: str) -> tuple[str, str]:
         async with self.semaphore:
-            logger.info(f"Crawling external URL {url}")
+            logger.info(f"Fetching URL {url}")
             text = ""
             html = ""
             try:
@@ -171,6 +182,10 @@ class CrawlerService:
                 html = await loop.run_in_executor(None, self._fetch_with_selenium, url)
                 text = extractor_service.clean_html(html)
                 
-            return text
+            return text, html
+
+    async def _crawl_single_url(self, url: str) -> str:
+        text, _ = await self._fetch_and_clean(url)
+        return text
 
 crawler_service = CrawlerService()

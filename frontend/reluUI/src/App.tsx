@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { ArrowRight, Sparkles, AlertCircle } from "lucide-react";
+import { ArrowRight, Sparkles, AlertCircle, Terminal } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sidebar } from "./components/Sidebar";
 import { CompanyCard } from "./components/CompanyCard";
-import { startResearch, fetchResearch } from "./services/api";
+import { startResearch, fetchResearch, fetchLogs } from "./services/api";
 import type { ResearchResult } from "./types/api";
 
 const STAGES = [
@@ -20,14 +20,33 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [stage, setStage] = useState(0);
   const [result, setResult] = useState<ResearchResult | null>(null);
+  const [showConsole, setShowConsole] = useState(false);
+  const [logs, setLogs] = useState<string[]>([]);
 
   const endOfChatRef = useRef<HTMLDivElement>(null);
+  const logsEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (result || loading) {
       endOfChatRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [result, loading]);
+
+  useEffect(() => {
+    if (showConsole) {
+      logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [logs, showConsole]);
+
+  useEffect(() => {
+    let logInterval: number;
+    if (loading && showConsole) {
+      logInterval = setInterval(() => {
+        fetchLogs().then(data => setLogs(data.logs)).catch(() => {});
+      }, 1000);
+    }
+    return () => clearInterval(logInterval);
+  }, [loading, showConsole]);
 
   useEffect(() => {
     let interval: number;
@@ -128,27 +147,57 @@ function App() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
-                    className="w-full max-w-4xl mx-auto bg-slate-900/50 rounded-xl border border-slate-800 p-6 flex flex-col gap-4"
+                    className="w-full max-w-4xl mx-auto flex flex-col gap-4"
                   >
-                    <div className="flex items-center gap-3 text-amber-400 font-medium">
-                      <div className="w-4 h-4 rounded-full border-2 border-amber-400 border-t-transparent animate-spin" />
-                      {STAGES[stage]}
-                    </div>
-                    
-                    <div className="flex gap-2 w-full">
-                      {STAGES.map((s, idx) => (
-                        <div key={s} className="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden relative">
-                          <motion.div 
-                            className="absolute inset-y-0 left-0 bg-amber-400"
-                            initial={{ width: "0%" }}
-                            animate={{ 
-                              width: idx < stage ? "100%" : idx === stage ? "100%" : "0%" 
-                            }}
-                            transition={{ duration: idx === stage ? 4 : 0.2, ease: "linear" }}
-                          />
+                    <div className="bg-slate-900/50 rounded-xl border border-slate-800 p-6 flex flex-col gap-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 text-amber-400 font-medium">
+                          <div className="w-4 h-4 rounded-full border-2 border-amber-400 border-t-transparent animate-spin" />
+                          {STAGES[stage]}
                         </div>
-                      ))}
+                        <button
+                          onClick={() => setShowConsole(!showConsole)}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 font-medium transition-colors"
+                        >
+                          <Terminal size={14} />
+                          {showConsole ? "Hide Console" : "Show Console"}
+                        </button>
+                      </div>
+                      
+                      <div className="flex gap-2 w-full">
+                        {STAGES.map((s, idx) => (
+                          <div key={s} className="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden relative">
+                            <motion.div 
+                              className="absolute inset-y-0 left-0 bg-amber-400"
+                              initial={{ width: "0%" }}
+                              animate={{ 
+                                width: idx < stage ? "100%" : idx === stage ? "100%" : "0%" 
+                              }}
+                              transition={{ duration: idx === stage ? 4 : 0.2, ease: "linear" }}
+                            />
+                          </div>
+                        ))}
+                      </div>
                     </div>
+
+                    {showConsole && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="bg-black rounded-xl border border-slate-800 p-4 font-mono text-[10px] text-green-400 overflow-y-auto max-h-64 shadow-inner"
+                      >
+                        {logs.length === 0 ? (
+                          <span className="text-slate-500">Waiting for logs...</span>
+                        ) : (
+                          logs.map((log, i) => (
+                            <div key={i} className="mb-1 leading-tight break-all">
+                              {log}
+                            </div>
+                          ))
+                        )}
+                        <div ref={logsEndRef} />
+                      </motion.div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>

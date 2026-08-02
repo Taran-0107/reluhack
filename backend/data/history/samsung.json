@@ -1,0 +1,83 @@
+{
+    "company_name": {
+        "value": "Samsung",
+        "source": "JSON-LD",
+        "confidence": 1.0
+    },
+    "website": {
+        "value": "https://www.samsung.com/us/",
+        "source": "JSON-LD",
+        "confidence": 1.0
+    },
+    "phone_number": {
+        "value": "+1-800-726-7864",
+        "source": "JSON-LD",
+        "confidence": 1.0
+    },
+    "address": {
+        "value": "700 Sylvan Avenue, Englewood Cliffs, NJ 07632, USA",
+        "source": "JSON-LD",
+        "confidence": 1.0
+    },
+    "products_services": {
+        "value": [
+            "Smartphones",
+            "Tablets",
+            "Laptops",
+            "TVs",
+            "Home Appliances",
+            "Monitors",
+            "Smartwatches",
+            "Headphones",
+            "Refrigerators",
+            "Ranges",
+            "Microwaves",
+            "Laundry Appliances"
+        ],
+        "source": "JSON-LD, Official Website",
+        "confidence": 1.0
+    },
+    "pain_points": {
+        "value": [
+            "Limited screen real estate and low resolution on current monitors",
+            "Inefficient manual data entry processes",
+            "High costs of legacy systems and appliances",
+            "Lack of smart features in home electronics",
+            "Outdated technology for entertainment and productivity"
+        ],
+        "source": "Inferred Insights",
+        "confidence": 0.8
+    },
+    "competitors": {
+        "value": [
+            {
+                "name": "LG",
+                "website": "https://www.lg.com/us",
+                "description": "LG is a major competitor in the electronics and home appliance space, offering a wide range of products including smartphones, TVs, and home appliances."
+            },
+            {
+                "name": "Apple",
+                "website": "https://www.apple.com",
+                "description": "Apple is a significant competitor in the smartphone, tablet, and laptop markets, with a focus on premium products and services."
+            },
+            {
+                "name": "Sony",
+                "website": "https://www.sony.com",
+                "description": "Sony is a competitor in the electronics space, offering a range of products including TVs, cameras, and audio equipment."
+            },
+            {
+                "name": "Huawei",
+                "website": "https://www.huawei.com",
+                "description": "Huawei is a global competitor in the smartphone and telecommunications market, offering a range of devices and services."
+            }
+        ],
+        "source": "Inferred Insights",
+        "confidence": 0.9
+    },
+    "summary": {
+        "value": "Samsung is a multinational conglomerate headquartered in South Korea, offering a diverse range of consumer electronics, home appliances, and mobile devices. The company is known for its innovative technology and design, with a focus on providing connected and design-forward solutions for various lifestyles.",
+        "source": "JSON-LD, Official Website, Search Snippets",
+        "confidence": 1.0
+    },
+    "_created_at": "2026-08-02T18:03:23.567594"
+}

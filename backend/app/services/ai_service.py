@@ -14,24 +14,26 @@ class AIService:
     async def generate_company_summary(self, company_name: str, context: str) -> Dict[str, Any]:
         prompt = f"""
 You are an expert business analyst. Analyze the following company context and extract information.
-You MUST respond with ONLY a valid JSON object matching exactly this schema:
+You MUST respond with ONLY a valid JSON object matching exactly this schema. For each field, provide a "value", a "source" indicating where you found it (e.g. "JSON-LD", "Homepage", "Search Snippet", or "Inferred Insights" for pain points), and a "confidence" score (0.0 to 1.0).
 
 {{
-  "company_name": "Name of the company",
-  "website": "The official website URL (if found in context)",
-  "phone_number": "Phone number (or null if not found)",
-  "address": "Headquarters or primary address (or null if not found)",
-  "products_services": ["list", "of", "products", "or", "services"],
-  "pain_points": ["List of specific CUSTOMER PROBLEMS, FRUSTRATIONS, or NEGATIVE EXPERIENCES that exist BEFORE using this company's product. Do NOT list the company's features or solutions. Write them as negative pain points (e.g., 'Wasting time on manual data entry', 'High costs of legacy systems')."],
-  "competitors": [
+  "company_name": {{"value": "Name of the company", "source": "...", "confidence": 1.0}},
+  "website": {{"value": "The official website URL (if found in context)", "source": "...", "confidence": 1.0}},
+  "phone_number": {{"value": "Phone number (or null if not found)", "source": "...", "confidence": 1.0}},
+  "address": {{"value": "Headquarters or primary address (or null if not found)", "source": "...", "confidence": 1.0}},
+  "products_services": {{"value": ["list", "of", "products", "or", "services"], "source": "...", "confidence": 1.0}},
+  "pain_points": {{"value": ["List of specific CUSTOMER PROBLEMS, FRUSTRATIONS, or NEGATIVE EXPERIENCES that exist BEFORE using this company's product. Do NOT list the company's features or solutions. Write them as negative pain points (e.g., 'Wasting time on manual data entry', 'High costs of legacy systems'). Use industry/products to infer them if needed."], "source": "Inferred Insights", "confidence": 0.8}},
+  "competitors": {{"value": [
     {{
       "name": "Competitor Name",
       "website": "Competitor website (or null)",
-      "description": "Brief description of how they compete"
+      "description": "Brief description of how they compete based on provided context"
     }}
-  ],
-  "summary": "A brief summary of what the company does"
+  ], "source": "...", "confidence": 0.9}},
+  "summary": {{"value": "A brief summary of what the company does", "source": "...", "confidence": 1.0}}
 }}
+
+Never hallucinate external information. Base your answers ONLY on the provided context. If something is completely absent, output null for value. Priority for phone/address: 1. JSON-LD, 2. Contact page, 3. Search snippets.
 
 Here is the context for company '{company_name}':
 {context[:25000]}
@@ -75,32 +77,51 @@ Here is the context for company '{company_name}':
         return await self._execute_request(url, headers, payload, is_cohere=True)
 
     async def _execute_request(self, url: str, headers: Dict, payload: Dict, is_cohere: bool) -> Dict[str, Any]:
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        content = ""
+        async with httpx.AsyncClient(timeout=180.0) as client:
             try:
                 response = await client.post(url, headers=headers, json=payload)
                 response.raise_for_status()
                 data = response.json()
                 
                 if is_cohere:
-                    # Cohere V2 API response structure
-                    content = data.get("message", {}).get("content", [])[0].get("text", "")
+                    if not data.get("message", {}).get("content"):
+                        logger.error(f"Cohere API returned unexpected format: {data}")
+                    content = data.get("message", {}).get("content", [{"text": ""}])[0].get("text", "")
                 else:
-                    # OpenRouter / OpenAI response structure
-                    content = data["choices"][0]["message"]["content"]
+                    if "choices" not in data or not data["choices"]:
+                        logger.error(f"OpenRouter/OpenAI API returned unexpected format: {data}")
+                    content = data.get("choices", [{"message": {"content": ""}}])[0].get("message", {}).get("content", "")
                 
-                # Cleanup markdown if LLM misbehaves despite instructions
                 content = content.strip()
-                if content.startswith("```json"):
-                    content = content[7:-3]
-                elif content.startswith("```"):
-                    content = content[3:-3]
+                if "```json" in content:
+                    content = content.split("```json")[1].split("```")[0]
+                elif "```" in content:
+                    content = content.split("```")[1].split("```")[0]
+                
+                start_idx = content.find("{")
+                end_idx = content.rfind("}")
+                if start_idx != -1 and end_idx != -1:
+                    content = content[start_idx:end_idx+1]
                     
-                return json.loads(content.strip())
+                parsed_json = json.loads(content.strip())
+                
+                # Graceful fallback: If LLM outputs flat values instead of nested dicts, wrap them automatically
+                for key, val in parsed_json.items():
+                    if not isinstance(val, dict) or "value" not in val:
+                        parsed_json[key] = {
+                            "value": val,
+                            "source": "AI Fallback Inference",
+                            "confidence": 0.5
+                        }
+                        
+                return parsed_json
             except httpx.HTTPStatusError as e:
                 logger.error(f"AI Provider HTTP Error ({url}): {e.response.text}")
                 raise e
             except Exception as e:
-                logger.error(f"Error parsing AI response: {e}")
+                import traceback
+                logger.error(f"Error parsing AI response: {repr(e)}. Raw content: {content}\n{traceback.format_exc()}")
                 raise e
 
 ai_service = AIService()

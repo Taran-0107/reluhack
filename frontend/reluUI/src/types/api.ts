@@ -4,15 +4,21 @@ export interface Competitor {
   description: string;
 }
 
+export interface FieldMetadata<T> {
+  value: T;
+  source: string | null;
+  confidence: number | null;
+}
+
 export interface ResearchResult {
-  company_name: string;
-  website: string;
-  phone_number: string | null;
-  address: string | null;
-  products_services: string[];
-  pain_points: string[];
-  competitors: Competitor[];
-  summary: string;
+  company_name: FieldMetadata<string>;
+  website: FieldMetadata<string>;
+  phone_number: FieldMetadata<string | null>;
+  address: FieldMetadata<string | null>;
+  products_services: FieldMetadata<string[]>;
+  pain_points: FieldMetadata<string[]>;
+  competitors: FieldMetadata<Competitor[]>;
+  summary: FieldMetadata<string>;
 }
 
 export interface ResearchRequest {
