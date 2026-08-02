@@ -36,13 +36,13 @@ class PDFService:
         # Products / Services
         story.append(Paragraph("Products / Services", heading_style))
         for item in data.products_services.value:
-            story.append(Paragraph(f"• {item}", normal_style))
+            story.append(Paragraph(f"&bull; {item}", normal_style))
         story.append(Spacer(1, 12))
         
         # Pain Points
         story.append(Paragraph("Pain Points Solved", heading_style))
         for item in data.pain_points.value:
-            story.append(Paragraph(f"• {item}", normal_style))
+            story.append(Paragraph(f"&bull; {item}", normal_style))
         story.append(Spacer(1, 12))
         
         # Competitors
@@ -53,7 +53,7 @@ class PDFService:
                 comp_text += f" ({comp.website})"
             if comp.description:
                 comp_text += f": {comp.description}"
-            story.append(Paragraph(f"• {comp_text}", normal_style))
+            story.append(Paragraph(f"&bull; {comp_text}", normal_style))
             
         doc.build(story)
         buffer.seek(0)
