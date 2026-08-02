@@ -6,9 +6,11 @@ import { fetchHistory } from "../services/api";
 interface SidebarProps {
   onNewResearch: () => void;
   onSelectHistory: (companyName: string) => void;
+  refreshTrigger: number;
+  currentSearch: string | null;
 }
 
-export function Sidebar({ onNewResearch, onSelectHistory }: SidebarProps) {
+export function Sidebar({ onNewResearch, onSelectHistory, refreshTrigger, currentSearch }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [history, setHistory] = useState<{company_name: string, website: string, created_at: string}[]>([]);
 
@@ -21,7 +23,7 @@ export function Sidebar({ onNewResearch, onSelectHistory }: SidebarProps) {
 
   useEffect(() => {
     fetchHistory().then(setHistory).catch(console.error);
-  }, [isOpen]); // Refresh when sidebar opens
+  }, [refreshTrigger]);
 
   const handleSaveConfig = () => {
     localStorage.setItem("discordBotToken", botToken);
@@ -41,12 +43,12 @@ export function Sidebar({ onNewResearch, onSelectHistory }: SidebarProps) {
     >
       <div className="flex items-center justify-between p-4 border-b border-slate-800">
         {isOpen && (
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-md bg-amber-400 flex items-center justify-center font-bold text-slate-900">
-              R
+          <div className="flex items-center gap-3 mb-8 px-2">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-slate-900 font-bold text-xl shadow-lg shadow-amber-500/20">
+              S
             </div>
             <div>
-              <h1 className="font-semibold text-sm leading-tight text-slate-100">Research AI</h1>
+              <h1 className="font-semibold text-sm leading-tight text-slate-100">Search InCorporate</h1>
               <span className="text-[10px] text-slate-400 uppercase tracking-widest">Company Intelligence</span>
             </div>
           </div>
@@ -74,24 +76,36 @@ export function Sidebar({ onNewResearch, onSelectHistory }: SidebarProps) {
         {isOpen && (
           <div className="mt-8 space-y-6">
             <div>
-              <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-                <History size={14} /> History
-              </h2>
-              <div className="space-y-2">
-                {history.length === 0 ? (
-                  <p className="text-xs text-slate-500">No previous research found.</p>
+              <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Recent Research</h2>
+              <div className="space-y-1">
+                {currentSearch && (
+                  <button 
+                    onClick={() => onSelectHistory(currentSearch)}
+                    className="w-full text-left px-3 py-2.5 rounded-lg flex flex-col gap-1 bg-amber-900/20 hover:bg-amber-900/30 text-amber-200/80 border border-amber-900/30 animate-pulse transition-colors"
+                  >
+                    <div className="flex justify-between items-center w-full">
+                      <span className="font-medium text-sm truncate">{currentSearch}</span>
+                      <div className="w-2 h-2 rounded-full border border-amber-400 border-t-transparent animate-spin" />
+                    </div>
+                    <span className="text-[10px] opacity-70">Researching...</span>
+                  </button>
+                )}
+                {history.length === 0 && !currentSearch ? (
+                  <p className="text-xs text-slate-500 italic px-2">No history yet.</p>
                 ) : (
-                  history.map((h, i) => (
+                  history.map((item, i) => (
                     <button
                       key={i}
-                      onClick={() => onSelectHistory(h.company_name)}
-                      className="w-full text-left p-3 rounded-lg bg-slate-900/50 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-colors group flex flex-col gap-1"
+                      onClick={() => onSelectHistory(item.company_name)}
+                      className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-800/80 transition-colors flex flex-col gap-1 group"
                     >
-                      <span className="text-sm text-slate-300 font-medium group-hover:text-amber-400">{h.company_name}</span>
-                      <div className="flex items-center gap-2 text-[10px] text-slate-500">
-                        <Clock size={10} />
-                        {new Date(h.created_at).toLocaleDateString()}
+                      <div className="flex justify-between items-center w-full">
+                        <span className="font-medium text-sm text-slate-300 group-hover:text-amber-400 truncate pr-2">
+                          {item.company_name}
+                        </span>
+                        <History size={12} className="text-slate-600 group-hover:text-amber-500 shrink-0" />
                       </div>
+                      <span className="text-[10px] text-slate-500 font-mono truncate">{item.website}</span>
                     </button>
                   ))
                 )}

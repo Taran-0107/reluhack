@@ -22,6 +22,11 @@ function App() {
   const [result, setResult] = useState<ResearchResult | null>(null);
   const [showConsole, setShowConsole] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const [runningSearch, setRunningSearch] = useState<string | null>(null);
+  const [viewingCompany, setViewingCompany] = useState<string | null>(null);
+  const viewingRef = useRef<string | null>(null);
 
   const endOfChatRef = useRef<HTMLDivElement>(null);
   const logsEndRef = useRef<HTMLDivElement>(null);
@@ -42,7 +47,7 @@ function App() {
     let logInterval: number;
     if (loading && showConsole) {
       logInterval = setInterval(() => {
-        fetchLogs().then(data => setLogs(data.logs)).catch(() => {});
+        fetchLogs().then(data => setLogs(data.logs)).catch(() => { });
       }, 1000);
     }
     return () => clearInterval(logInterval);
@@ -50,82 +55,114 @@ function App() {
 
   useEffect(() => {
     let interval: number;
-    if (loading) {
+    if (runningSearch) {
       setStage(0);
       interval = setInterval(() => {
         setStage((prev) => (prev < 4 ? prev + 1 : prev));
       }, 4000);
     }
     return () => clearInterval(interval);
-  }, [loading]);
+  }, [runningSearch]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    setLoading(true);
+    const currentInput = input;
+    setRunningSearch(currentInput);
+    setViewingCompany(currentInput);
+    viewingRef.current = currentInput;
     setError(null);
     setResult(null);
 
-    const isUrl = input.includes(".") && !input.includes(" ");
-    const payload: any = isUrl ? { website_url: input } : { company_name: input };
+    const isUrl = currentInput.includes(".") && !currentInput.includes(" ");
+    const payload: any = isUrl ? { website_url: currentInput } : { company_name: currentInput };
 
     try {
       const data = await startResearch(payload);
-      setResult(data);
+      if (viewingRef.current === currentInput) {
+        setResult(data);
+      }
+      setRefreshTrigger(prev => prev + 1);
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || "An error occurred");
+      if (viewingRef.current === currentInput) {
+        setError(err.response?.data?.detail || err.message || "An error occurred");
+      }
     } finally {
-      setLoading(false);
-      setStage(0);
+      setRunningSearch(null);
+      if (viewingRef.current === currentInput) {
+        setStage(0);
+      }
     }
   };
 
   const handleSelectHistory = async (companyName: string) => {
-    setLoading(true);
+    setViewingCompany(companyName);
+    viewingRef.current = companyName;
     setError(null);
     setResult(null);
+
+    if (companyName === runningSearch) {
+      return; // It's still running, so it will show the loading screen
+    }
+
+    setLoading(true);
     try {
       const data = await fetchResearch(companyName);
-      setResult(data);
+      if (viewingRef.current === companyName) {
+        setResult(data);
+      }
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || "Failed to load history.");
+      if (viewingRef.current === companyName) {
+        setError(err.response?.data?.detail || err.message || "Failed to load history.");
+      }
     } finally {
-      setLoading(false);
-      setStage(0);
+      if (viewingRef.current === companyName) {
+        setLoading(false);
+      }
     }
   };
 
   const handleNewResearch = () => {
+    setViewingCompany(null);
+    viewingRef.current = null;
     setResult(null);
     setInput("");
     setError(null);
   };
 
+  const isCurrentlyLoading = runningSearch === viewingCompany && runningSearch !== null;
+  const isHistoryLoading = loading && viewingCompany !== runningSearch;
+
   return (
     <div className="flex h-screen bg-[#0f172a] text-slate-200 overflow-hidden font-sans">
-      <Sidebar onNewResearch={handleNewResearch} onSelectHistory={handleSelectHistory} />
+      <Sidebar
+        onNewResearch={handleNewResearch}
+        onSelectHistory={handleSelectHistory}
+        refreshTrigger={refreshTrigger}
+        currentSearch={runningSearch}
+      />
 
       <main className="flex-1 flex flex-col relative h-full">
         {/* Top bar (mobile) */}
         <div className="p-4 flex items-center justify-between border-b border-slate-800 md:hidden">
-           <h1 className="font-semibold text-slate-100">Research AI</h1>
+          <h1 className="font-semibold text-slate-100">Search InCorporate</h1>
         </div>
 
         {/* Canvas */}
         <div className="flex-1 overflow-y-auto w-full flex flex-col">
-          {!result && !loading ? (
+          {!result && !isCurrentlyLoading && !isHistoryLoading ? (
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center max-w-2xl mx-auto mt-[-10vh]">
               <div className="text-amber-400 font-bold tracking-widest uppercase text-xs mb-6 flex items-center gap-2">
                 <Sparkles size={14} /> AI-Powered Intelligence
               </div>
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-                Know any company <br /> in minutes.
+                Search any company
               </h1>
               <p className="text-slate-400 text-lg mb-10">
                 Enter a company name or website URL to get AI-powered insights, competitor analysis, pain points, and a professional PDF report.
               </p>
-              
+
               <div className="flex flex-wrap justify-center gap-3">
                 {["stripe.com", "Tesla", "Microsoft", "OpenAI"].map((suggestion) => (
                   <button
@@ -142,7 +179,7 @@ function App() {
             <div className="flex-1 p-6 md:p-12 w-full max-w-6xl mx-auto space-y-8">
               {/* Timeline (Loading State) */}
               <AnimatePresence>
-                {loading && (
+                {isCurrentlyLoading && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -163,15 +200,15 @@ function App() {
                           {showConsole ? "Hide Console" : "Show Console"}
                         </button>
                       </div>
-                      
+
                       <div className="flex gap-2 w-full">
                         {STAGES.map((s, idx) => (
                           <div key={s} className="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden relative">
-                            <motion.div 
+                            <motion.div
                               className="absolute inset-y-0 left-0 bg-amber-400"
                               initial={{ width: "0%" }}
-                              animate={{ 
-                                width: idx < stage ? "100%" : idx === stage ? "100%" : "0%" 
+                              animate={{
+                                width: idx < stage ? "100%" : idx === stage ? "100%" : "0%"
                               }}
                               transition={{ duration: idx === stage ? 4 : 0.2, ease: "linear" }}
                             />
@@ -202,6 +239,13 @@ function App() {
                 )}
               </AnimatePresence>
 
+              {/* History Loading State */}
+              {isHistoryLoading && (
+                <div className="w-full max-w-4xl mx-auto flex justify-center items-center py-20">
+                  <div className="w-8 h-8 rounded-full border-4 border-amber-400 border-t-transparent animate-spin" />
+                </div>
+              )}
+
               {/* Error State */}
               {error && (
                 <div className="w-full max-w-4xl mx-auto p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-start gap-3">
@@ -215,7 +259,7 @@ function App() {
 
               {/* Result State */}
               {result && <CompanyCard data={result} />}
-              
+
               <div ref={endOfChatRef} className="h-20" />
             </div>
           )}
@@ -225,7 +269,7 @@ function App() {
         <div className="p-6 w-full max-w-4xl mx-auto absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a] to-transparent pt-12">
           <form onSubmit={handleSubmit} className="relative group">
             <input
-              disabled={loading}
+              disabled={runningSearch !== null}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Enter a company name (e.g. Stripe) or website URL (e.g. https://stripe.com)..."
@@ -233,14 +277,19 @@ function App() {
             />
             <button
               type="submit"
-              disabled={loading || !input.trim()}
+              disabled={runningSearch !== null || !input.trim()}
               className="absolute right-2 top-2 bottom-2 px-6 bg-amber-400 hover:bg-amber-300 disabled:bg-slate-700 disabled:text-slate-500 text-slate-900 font-semibold rounded-lg flex items-center gap-2 transition-colors"
             >
               Research <ArrowRight size={16} />
             </button>
           </form>
-          <div className="text-center text-[10px] text-slate-500 mt-4 uppercase tracking-widest font-semibold">
-            ENTER TO RESEARCH
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold ml-2">
+              ENTER TO RESEARCH
+            </div>
+            <div className="text-[10px] text-slate-500">
+              Made by <a href="https://tarandeep-singh.vercel.app/" target="_blank" rel="noreferrer" className="text-amber-500 hover:text-amber-400 font-semibold transition-colors">Tarandeep Singh</a>
+            </div>
           </div>
         </div>
       </main>

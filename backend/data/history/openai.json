@@ -1,0 +1,74 @@
+{
+    "company_name": {
+        "value": "OpenAI",
+        "source": "JSON-LD",
+        "confidence": 1.0
+    },
+    "website": {
+        "value": "https://openai.com",
+        "source": "JSON-LD",
+        "confidence": 1.0
+    },
+    "phone_number": {
+        "value": null,
+        "source": null,
+        "confidence": 1.0
+    },
+    "address": {
+        "value": "San Francisco, CA 94110, US",
+        "source": "LinkedIn",
+        "confidence": 0.9
+    },
+    "products_services": {
+        "value": [
+            "AI research",
+            "AI deployment",
+            "Generative AI models",
+            "GPT series",
+            "ChatGPT",
+            "AI tools",
+            "AI solutions for businesses"
+        ],
+        "source": "JSON-LD, Website, LinkedIn",
+        "confidence": 1.0
+    },
+    "pain_points": {
+        "value": [
+            "Manual and time-consuming tasks",
+            "Lack of automation",
+            "High costs of AI solutions",
+            "Limited access to AI for researchers and small businesses",
+            "Data privacy and security concerns",
+            "Need for better AI governance and control"
+        ],
+        "source": "Inferred Insights",
+        "confidence": 0.8
+    },
+    "competitors": {
+        "value": [
+            {
+                "name": "Cohere",
+                "website": "https://www.cohere.com/",
+                "description": "Develops AI models and provides AI-powered tools for businesses."
+            },
+            {
+                "name": "Anthropic",
+                "website": "https://www.anthropic.com/",
+                "description": "Focuses on developing AI models with human-like capabilities and ensuring safety."
+            },
+            {
+                "name": "Google DeepMind",
+                "website": "https://deepmind.google/",
+                "description": "Conducts research in AI and machine learning, creating advanced AI systems."
+            }
+        ],
+        "source": "Inferred Insights",
+        "confidence": 0.9
+    },
+    "summary": {
+        "value": "OpenAI is an AI research and deployment company, aiming to ensure that artificial general intelligence benefits humanity. They develop AI models, notably the GPT series, and offer AI solutions for various industries, emphasizing safety, accessibility, and ethical AI development.",
+        "source": "JSON-LD, Website, LinkedIn",
+        "confidence": 1.0
+    },
+    "_created_at": "2026-08-02T18:08:52.189015"
+}
